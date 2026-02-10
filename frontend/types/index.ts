@@ -1,14 +1,20 @@
 // types/index.ts
 export interface Entry {
-  ID: number;
-  UserID: number; // Или string, зависит от GORM/SQL
-  Situation: string;
-  Text: string;
-  Colour: string;
-  Icon: string;
-  CreatedAt: string; // Дата с бэка
+  id: number;
+  userId: number;
+  situation: string;
+  text: string;
+  colour: string;
+  icon: string;
+  createdAt: string;
 }
-
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
+}
 export interface UserResponse {
   username: string;
 }

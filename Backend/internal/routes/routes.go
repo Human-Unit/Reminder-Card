@@ -32,7 +32,6 @@ func SetupRoutes(r *gin.Engine) {
 	})
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.GET("/test", handlers.Test)
 
 	User := r.Group("/user")
 
@@ -44,4 +43,13 @@ func SetupRoutes(r *gin.Engine) {
 	User.POST("/login", handlers.Login)
 	User.PUT("/entries/:id", handlers.UpdateEntry)
 	User.DELETE("/entries/:id", handlers.DeleteEntry)
+
+	Admin := r.Group("/admin")
+	Admin.Use(middleware.AuthAdminMiddleware())
+	Admin.GET("/entries", handlers.GetAllEntries)
+	Admin.GET("/users", handlers.GetAllUsers)
+	Admin.PUT("/entries/:id", handlers.UpdateAnyEntry)
+	Admin.DELETE("/entries/:id", handlers.DeleteAnyEntry)
+	Admin.PUT("/users", handlers.UpdateUser)
+	Admin.DELETE("/users", handlers.DeleteUser)
 }

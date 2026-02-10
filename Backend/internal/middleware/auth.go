@@ -50,12 +50,57 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+func AuthAdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := c.GetHeader("Authorization")
+		if tokenString == "" {
+			// cookie fallback
+			var err error
+			tokenString, err = c.Cookie("token")
+			if err != nil || tokenString == "" {
+				c.JSON(401, gin.H{"error": "Unauthorized: Missing token"})
+				c.Abort()
+				return
+			}
+		} else {
+			const bearerPrefix = "Bearer "
+			if len(tokenString) > len(bearerPrefix) && tokenString[:len(bearerPrefix)] == bearerPrefix {
+				tokenString = tokenString[len(bearerPrefix):]
+			}
+		}
+		// Parse token with our CustomClaims so claims are populated correctly
+		claims := &CustomClaims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.NewValidationError("unexpected signing method", jwt.ValidationErrorSignatureInvalid)
+			}
+			return secretKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			log.Printf("Invalid token: %v", err)
+			c.JSON(401, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		// At this point claims is populated by ParseWithClaims
+		if claims.Role != "admin" {
+			c.JSON(403, gin.H{"error": "Forbidden: Admin access required"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
 
 // CreateToken builds a JWT containing user id and username
-func CreateToken(userID uint, username string) (string, error) {
+func CreateToken(userID uint, username string, role string) (string, error) {
 	claims := CustomClaims{
 		UserID:   userID,
 		Username: username,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -71,6 +116,9 @@ func CreateToken(userID uint, username string) (string, error) {
 }
 func SetCookie(c *gin.Context, token string) {
 	c.SetCookie("token", token, 86400, "/", "", true, true)
+}
+func SetRoleCookie(c *gin.Context, role string) {
+	c.SetCookie("role", role, 86400, "/", "", true, true)
 }
 
 func GetUsernameFromToken(tokenString string) (string, error) {
@@ -96,6 +144,7 @@ func GetUsernameFromToken(tokenString string) (string, error) {
 type CustomClaims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 

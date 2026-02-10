@@ -73,17 +73,6 @@ func GetEntries(c *gin.Context) {
 	c.JSON(http.StatusOK, entries)
 }
 
-func Test(c *gin.Context) {
-	var entries []models.Entry
-	if err := DB.Find(&entries).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
-
-	c.JSON(http.StatusOK, entries)
-
-}
-
 // UpdateEntry обновляет существующую запись
 func UpdateEntry(c *gin.Context) {
 	id := c.Param("id")

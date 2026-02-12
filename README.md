@@ -1,7 +1,7 @@
 # Memory Card Application 🧠
 
-[![Backend CI](https://github.com/Human-Unit/Reminder-Card/workflows/Backend%20CI/badge.svg)](https://github.com/Human-Unit/Reminder-Card/actions/workflows/backend.yml)
-[![Frontend CI](https://github.com/Human-Unit/Reminder-Card/workflows/Frontend%20CI/badge.svg)](https://github.com/Human-Unit/Reminder-Card/actions/workflows/frontend.yml)
+[![Backend CI](https://github.com/Human-Unit/Reminder-Card/actions/workflows/backend.yml/badge.svg)](https://github.com/Human-Unit/Reminder-Card/actions/workflows/backend.yml)
+[![Frontend CI](https://github.com/Human-Unit/Reminder-Card/actions/workflows/frontend.yml/badge.svg)](https://github.com/Human-Unit/Reminder-Card/actions/workflows/frontend.yml)
 
 
 A full-stack web application for managing personal memories and experiences with a powerful admin dashboard. Built with Go and Next.js.

@@ -1,85 +1,46 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
 import Header from "../../components/Header";
 import CreateEntryForm from "../../components/CreateEntryForm";
 import EntryList from "../../components/EntryList";
-import api from "../../lib/axios";
-import { Entry } from "../../types";
+import { useEntries } from "../../hooks/useEntries";
 import { AlertCircle } from "lucide-react";
 
 export default function DashboardPage() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchEntries = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await api.get("/user/entries");
-
-      // Обработка разных форматов ответа от бэкенда
-      const data = Array.isArray(res.data)
-        ? res.data
-        : res.data.data || res.data.entries || [];
-
-      setEntries(data);
-    } catch (error: any) {
-      console.error("Failed to load entries:", error);
-      const errorMsg =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Failed to load entries";
-      setError(errorMsg);
-      setEntries([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEntries();
-  }, [fetchEntries]);
+  const { data: entries = [], isLoading, error } = useEntries();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-4 md:p-8 font-sans transition-colors">
       <div className="max-w-4xl mx-auto">
         <Header />
 
-        {/* Ошибка подключения к API */}
+        {/* Error State */}
         {error && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl flex items-start gap-3">
+          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-xl flex items-start gap-3">
             <AlertCircle
               size={20}
-              className="text-yellow-600 flex-shrink-0 mt-0.5"
+              className="text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5"
             />
             <div>
-              <h3 className="font-bold text-yellow-800">Connection Error</h3>
-              <p className="text-sm text-yellow-700">{error}</p>
-              <p className="text-xs text-yellow-600 mt-1">
+              <h3 className="font-bold text-yellow-800 dark:text-yellow-400">Connection Error</h3>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">{(error as any).message || 'Failed to load entries'}</p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-400/80 mt-1">
                 Backend should be running on {process.env.NEXT_PUBLIC_API_URL}
               </p>
-              <button
-                onClick={fetchEntries}
-                className="mt-2 text-xs font-bold text-yellow-700 hover:text-yellow-800 underline"
-              >
-                Try again
-              </button>
             </div>
           </div>
         )}
 
-        {/* Форма создания записи */}
-        <CreateEntryForm onEntryCreated={fetchEntries} />
+        {/* Create Form */}
+        {/* We don't need onEntryCreated anymore because React Query handles invalidation automatically */}
+        <CreateEntryForm />
 
-        {/* Список записей с индикатором загрузки */}
-        {loading ? (
+        {/* List */}
+        {isLoading ? (
           <div className="flex justify-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
           </div>
         ) : (
-          // В DashboardPage
-          <EntryList entries={entries} onRefresh={fetchEntries} />
+          <EntryList entries={entries} />
         )}
       </div>
     </div>

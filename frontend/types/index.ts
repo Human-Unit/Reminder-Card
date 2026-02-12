@@ -1,5 +1,5 @@
 // types/index.ts
-interface User {
+export interface User {
   ID: number;        // Must be ID (uppercase)
   name: string;      // Must be name (lowercase)
   email: string;
@@ -7,14 +7,17 @@ interface User {
   CreatedAt: string; // Required by BaseItem
 }
 
-interface Entry {
+export interface Entry {
   ID: number;
-  Situation: string; // Must match EntryItem casing
-  Text: string;
-  Colour: string;
-  Icon: string;
+  situation: string;
+  text: string;
+  colour: string;
+  icon: string;
   CreatedAt: string;
+  user_id?: number;
 }
 export interface UserResponse {
   username: string;
 }
+
+export type TableItem = User | Entry;

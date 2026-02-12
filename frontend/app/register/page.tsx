@@ -40,17 +40,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 font-sans relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 font-sans relative overflow-hidden">
       
       {/* Декоративные круги на фоне */}
-      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/40 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/40 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/40 dark:bg-purple-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] w-full max-w-md border border-white"
+        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700"
       >
         <div className="text-center mb-10">
           <motion.div 
@@ -61,15 +61,15 @@ export default function RegisterPage() {
           >
             <UserPlus className="text-white" size={28} />
           </motion.div>
-          <h2 className="text-3xl font-black text-gray-800 tracking-tight">Create Account</h2>
-          <p className="text-gray-500 mt-2">Start your mindful journey today</p>
+          <h2 className="text-3xl font-black text-gray-800 dark:text-white tracking-tight">Create Account</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Start your mindful journey today</p>
         </div>
         
         {error && (
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600"
+            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-2xl flex items-center gap-3 text-red-600 dark:text-red-400"
           >
             <AlertCircle size={18} className="shrink-0" />
             <p className="text-sm font-medium">{error}</p>
@@ -85,7 +85,7 @@ export default function RegisterPage() {
               placeholder="Full Name"
               value={form.name}
               onChange={(e) => setForm({...form, name: e.target.value})}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all text-gray-800"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all text-gray-800 dark:text-white placeholder:text-gray-400"
               disabled={loading}
               required
             />
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               placeholder="Email Address"
               value={form.email}
               onChange={(e) => setForm({...form, email: e.target.value})}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all text-gray-800"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all text-gray-800 dark:text-white placeholder:text-gray-400"
               disabled={loading}
               required
             />
@@ -113,7 +113,7 @@ export default function RegisterPage() {
               placeholder="Password"
               value={form.password}
               onChange={(e) => setForm({...form, password: e.target.value})}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all text-gray-800"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white dark:focus:bg-slate-800 transition-all text-gray-800 dark:text-white placeholder:text-gray-400"
               disabled={loading}
               required
             />
@@ -135,8 +135,8 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-8 border-t border-gray-50 text-center">
-          <p className="text-gray-500">
+        <div className="mt-8 pt-8 border-t border-gray-50 dark:border-slate-700 text-center">
+          <p className="text-gray-500 dark:text-gray-400">
             Already have an account? 
             <a href="/login" className="ml-2 text-indigo-600 font-bold hover:text-indigo-700 transition-colors">
               Sign In

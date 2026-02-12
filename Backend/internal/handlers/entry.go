@@ -17,8 +17,8 @@ func SetDB(database *gorm.DB) {
 
 // Создание записи (Оптимизировано: берем ID из токена сразу)
 func CreateEntry(c *gin.Context) {
-	tokenString, err := c.Cookie("token")
-	if err != nil {
+	tokenString := middleware.ExtractToken(c)
+	if tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -51,8 +51,8 @@ func CreateEntry(c *gin.Context) {
 
 // Получение записей (Исправлен синтаксис Where)
 func GetEntries(c *gin.Context) {
-	tokenString, err := c.Cookie("token")
-	if err != nil {
+	tokenString := middleware.ExtractToken(c)
+	if tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -76,7 +76,7 @@ func GetEntries(c *gin.Context) {
 // UpdateEntry обновляет существующую запись
 func UpdateEntry(c *gin.Context) {
 	id := c.Param("id")
-	tokenString, _ := c.Cookie("token")
+	tokenString := middleware.ExtractToken(c)
 	userID, _ := middleware.GetUserIDFromToken(tokenString)
 
 	var entry models.Entry
@@ -99,7 +99,7 @@ func UpdateEntry(c *gin.Context) {
 // DeleteEntry удаляет запись
 func DeleteEntry(c *gin.Context) {
 	id := c.Param("id")
-	tokenString, _ := c.Cookie("token")
+	tokenString := middleware.ExtractToken(c)
 	userID, _ := middleware.GetUserIDFromToken(tokenString)
 
 	result := DB.Where("id = ? AND user_id = ?", id, userID).Delete(&models.Entry{})

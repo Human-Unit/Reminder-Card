@@ -1,79 +1,70 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, Lightbulb, Heart, Calendar, Trash2, Pencil, X } from 'lucide-react';
+import { Calendar, Trash2, Pencil, X } from 'lucide-react';
 import { Entry } from '../types';
-import api from '../lib/axios';
+import { useDeleteEntry, useUpdateEntry } from '../hooks/useEntries';
+import { ICON_MAP, COLOR_MAP, AVAILABLE_COLORS, AVAILABLE_ICONS } from '@/lib/constants';
+import { ConfirmModal } from './ConfirmModal';
 
 interface Props {
   entries: Entry[];
-  onRefresh: () => void;
 }
 
-const iconMap: Record<string, React.ReactNode> = {
-  briefcase: <Briefcase size={20} />,
-  idea: <Lightbulb size={20} />,
-  heart: <Heart size={20} />,
-};
-
-const colorMap: Record<string, string> = {
-  purple: 'bg-gradient-to-r from-blue-500 to-purple-600',
-  orange: 'bg-gradient-to-r from-orange-400 to-red-500',
-  blue: 'bg-gradient-to-r from-cyan-500 to-blue-500',
-};
-
-export default function EntryList({ entries, onRefresh }: Props) {
+export default function EntryList({ entries }: Props) {
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const deleteMutation = useDeleteEntry();
+  const updateMutation = useUpdateEntry();
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
-    e.stopPropagation();
-    if (!id) return;
-    if (!confirm('Are you sure you want to delete this memory?')) return;
+  // Helper to safely get lowercase values
+  const getColor = (c: string) => (c || '').toLowerCase();
+  const getIcon = (i: string) => (i || '').toLowerCase();
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEntry || !editingEntry.ID) return;
     
-    try {
-      await api.delete(`/user/entries/${id}`);
-      onRefresh();
-    } catch (err) {
-      console.error(err);
-      alert('Delete failed');
+    updateMutation.mutate(editingEntry, {
+      onSuccess: () => setEditingEntry(null)
+    });
+  };
+
+  const confirmDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId);
+      setDeleteId(null);
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingEntry || !editingEntry.id) return;
+  // Hydration-safe date formatter
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Just now';
+    return new Date(dateString).toLocaleDateString(undefined, {
+       year: 'numeric', month: 'short', day: 'numeric'
+    });
+  };
 
-    try {
-      setIsUpdating(true);
-      // Ensure keys match what your Go backend expects (usually lowercase tags)
-      await api.put(`/user/entries/${editingEntry.id}`, {
-        situation: editingEntry.situation,
-        text: editingEntry.text,
-        colour: editingEntry.colour,
-        icon: editingEntry.icon
-      });
-      setEditingEntry(null);
-      onRefresh();
-    } catch (err) {
-      alert('Update failed');
-    } finally {
-      setIsUpdating(false);
-    }
+  // Safe Icon render
+  const renderIcon = (iconName: string) => {
+    const IconComponent = ICON_MAP[getIcon(iconName)] || ICON_MAP['briefcase'];
+    return <IconComponent size={20} />;
   };
 
   return (
     <div className="mt-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <AnimatePresence mode='popLayout'>
-          {entries.map((entry) => (
+          {entries.map((entry, index) => (
             <motion.div
-              key={entry.id}
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className={`${colorMap[(entry.colour || '').toLowerCase()] || 'bg-gray-500'} p-5 rounded-3xl text-white shadow-lg relative overflow-hidden group`}
+              key={entry.ID}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              transition={{ delay: index * 0.05 }}
+              className={`${COLOR_MAP[getColor(entry.colour)] || 'bg-gray-500'} p-5 rounded-3xl text-white shadow-lg relative overflow-hidden group`}
             >
               <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
@@ -83,7 +74,7 @@ export default function EntryList({ entries, onRefresh }: Props) {
                   <Pencil size={16} />
                 </button>
                 <button 
-                  onClick={(e) => handleDelete(e, entry.id)}
+                  onClick={(e) => { e.stopPropagation(); setDeleteId(entry.ID); }}
                   className="p-2 bg-white/10 hover:bg-red-500/40 rounded-xl backdrop-blur-md transition-colors"
                 >
                   <Trash2 size={16} />
@@ -92,13 +83,13 @@ export default function EntryList({ entries, onRefresh }: Props) {
 
               <div className="flex items-start gap-4 z-10 relative">
                 <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md shrink-0">
-                  {iconMap[(entry.icon || '').toLowerCase()] || <Briefcase size={20} />}
+                  {renderIcon(entry.icon)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-lg leading-tight truncate pr-10">{entry.situation}</h4>
                   <p className="text-[10px] text-white/70 flex items-center gap-1 mt-1 font-medium uppercase">
                     <Calendar size={10} />
-                    {new Date(entry.created_at).toLocaleDateString()}
+                    {formatDate(entry.CreatedAt)}
                   </p>
                   {entry.text && (
                     <div className="mt-3 text-sm text-white/90 line-clamp-2 italic border-l border-white/20 pl-3">
@@ -112,6 +103,7 @@ export default function EntryList({ entries, onRefresh }: Props) {
         </AnimatePresence>
       </div>
 
+      {/* Edit Modal */}
       <AnimatePresence>
         {editingEntry && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -123,19 +115,18 @@ export default function EntryList({ entries, onRefresh }: Props) {
             <motion.form 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               onSubmit={handleUpdate} 
-              className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl relative z-10 space-y-4 text-gray-800"
+              className="bg-white dark:bg-zinc-900 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative z-10 space-y-4 text-gray-800 dark:text-gray-100"
             >
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-purple-600">Edit Memory</h2>
-                <button type="button" onClick={() => setEditingEntry(null)}><X size={24}/></button>
+                <h2 className="text-2xl font-bold text-purple-600 dark:text-purple-400">Edit Memory</h2>
+                <button type="button" onClick={() => setEditingEntry(null)} className="dark:text-gray-400 hover:text-gray-600"><X size={24}/></button>
               </div>
 
               <div>
                 <label className="text-xs font-bold text-gray-400 uppercase">Situation</label>
                 <input 
-                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl mt-1 outline-none"
+                  className="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl mt-1 outline-none focus:ring-2 focus:ring-purple-200"
                   value={editingEntry.situation} 
-                  // FIX: Standardized to lowercase 'situation'
                   onChange={(e) => setEditingEntry(prev => prev ? {...prev, situation: e.target.value} : null)} 
                 />
               </div>
@@ -143,28 +134,31 @@ export default function EntryList({ entries, onRefresh }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase">Icon</label>
-                  <div className="flex gap-2 mt-2">
-                    {['briefcase', 'idea', 'heart'].map(icon => (
-                      <button 
-                        key={icon} 
-                        type="button" 
-                        onClick={() => setEditingEntry(prev => prev ? {...prev, icon: icon} : null)}
-                        className={`p-3 rounded-xl border transition-all ${editingEntry.icon === icon ? 'border-purple-500 bg-purple-50 text-purple-600' : 'border-gray-100 text-gray-400'}`}
-                      >
-                        {iconMap[icon]}
-                      </button>
-                    ))}
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {AVAILABLE_ICONS.map(icon => {
+                      const IconComp = ICON_MAP[icon];
+                      return (
+                        <button 
+                          key={icon} 
+                          type="button" 
+                          onClick={() => setEditingEntry(prev => prev ? {...prev, icon: icon} : null)}
+                          className={`p-2 rounded-xl border transition-all ${editingEntry.icon === icon ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' : 'border-gray-100 dark:border-zinc-700 text-gray-400'}`}
+                        >
+                          <IconComp size={18} />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase">Color</label>
-                  <div className="flex gap-2 mt-2">
-                    {['purple', 'orange', 'blue'].map(color => (
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {AVAILABLE_COLORS.map(color => (
                       <button 
                         key={color} 
                         type="button" 
                         onClick={() => setEditingEntry(prev => prev ? {...prev, colour: color} : null)}
-                        className={`w-10 h-10 rounded-full border-2 transition-transform active:scale-90 ${editingEntry.colour === color ? 'border-gray-800' : 'border-transparent'} ${color === 'purple' ? 'bg-purple-500' : color === 'orange' ? 'bg-orange-500' : 'bg-blue-500'}`} 
+                        className={`w-8 h-8 rounded-full border-2 transition-transform active:scale-95 ${editingEntry.colour === color ? 'border-gray-800 dark:border-white scale-110' : 'border-transparent'} ${COLOR_MAP[color]}`} 
                       />
                     ))}
                   </div>
@@ -174,7 +168,7 @@ export default function EntryList({ entries, onRefresh }: Props) {
               <div>
                 <label className="text-xs font-bold text-gray-400 uppercase">Description</label>
                 <textarea 
-                  className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl mt-1 h-32 outline-none resize-none"
+                  className="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl mt-1 h-32 outline-none resize-none focus:ring-2 focus:ring-purple-200"
                   value={editingEntry.text} 
                   onChange={(e) => setEditingEntry(prev => prev ? {...prev, text: e.target.value} : null)} 
                 />
@@ -182,15 +176,23 @@ export default function EntryList({ entries, onRefresh }: Props) {
 
               <button 
                 type="submit" 
-                disabled={isUpdating} 
+                disabled={updateMutation.isPending} 
                 className="w-full bg-purple-600 text-white font-bold py-4 rounded-2xl hover:bg-purple-700 transition-colors disabled:opacity-50"
               >
-                {isUpdating ? 'Saving...' : 'Save Changes'}
+                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
               </button>
             </motion.form>
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        onCancel={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="Delete Memory"
+        message="Are you sure you want to delete this memory? This action cannot be undone."
+      />
     </div>
   );
 }

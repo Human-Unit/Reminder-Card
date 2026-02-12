@@ -13,18 +13,17 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      // Try to get token from localStorage first
+      // 1. Try to get from localStorage (manual save)
       let token = localStorage.getItem('token');
-      
-      // If not in localStorage, try to get from cookies
+
+      // 2. If not manual, let browser handle cookies implicitly with credentials=true
+      // But if we need to manually attach it for some reason (e.g. non-browser env or specific header requirement):
       if (!token) {
-        const cookieValue = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('token='))
-          ?.split('=')[1];
-        token = cookieValue || null;
+        // Simple cookie parser
+        const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
+        if (match) token = match[2];
       }
-      
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

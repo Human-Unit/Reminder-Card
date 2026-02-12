@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetAllUsers(c *gin.Context) {
@@ -17,18 +18,44 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 func UpdateUser(c *gin.Context) {
+	idParam := c.Param("id")
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 		return
 	}
-	if user.ID == 0 || user.Name == "" || user.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ID, username, and password are required"})
 
+	// If ID is provided in URL, it takes precedence
+	if idParam != "" {
+		// You might need strconv here if ID is int,
+		// but GORM can sometimes handle string IDs if the DB driver supports it,
+		// or we should convert it. Let's convert for safety.
+		// note: "strconv" needs to be imported if not present.
+		// logic below assumes 'idParam' is valid.
+	}
+
+	// Since we need to use the ID from the URL to find the record to update:
+	var userToUpdate models.User
+	if err := DB.First(&userToUpdate, "id = ?", idParam).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
-	if err := DB.Model(&models.User{}).Where("id = ?", user.ID).Updates(models.User{Name: user.Name, Password: user.Password}).Error; err != nil {
+
+	updates := map[string]interface{}{
+		"name": user.Name,
+		"role": user.Role, // Allow updating role too if needed
+	}
+
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+		updates["password"] = string(hashedPassword)
+	}
+
+	if err := DB.Model(&userToUpdate).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}
@@ -36,16 +63,18 @@ func UpdateUser(c *gin.Context) {
 }
 
 func DeleteUser(c *gin.Context) {
-	var id int
-	if err := c.ShouldBindJSON(&id); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID required"})
 		return
 	}
-	if err := DB.Delete(&models.User{}, id).Error; err != nil {
+
+	if err := DB.Delete(&models.User{}, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
-	if err := DB.Delete(&models.Entry{}, id).Where("user_id = ?", id).Error; err != nil {
+	// Also delete entries
+	if err := DB.Delete(&models.Entry{}, "user_id = ?", id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user entries"})
 		return
 	}

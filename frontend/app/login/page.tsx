@@ -69,18 +69,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4 font-sans">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-100/50 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-3xl"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-100/50 dark:bg-purple-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl"></div>
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative bg-white/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] w-full max-w-md border border-white"
+        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700"
       >
         <div className="text-center mb-10">
           <motion.div
@@ -91,10 +91,10 @@ export default function LoginPage() {
           >
             <Lock className="text-white" size={28} />
           </motion.div>
-          <h2 className="text-3xl font-black text-gray-800 tracking-tight">
+          <h2 className="text-3xl font-black text-gray-800 dark:text-white tracking-tight">
             Welcome Back
           </h2>
-          <p className="text-gray-500 mt-2">Sign in to continue your journey</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to continue your journey</p>
         </div>
 
         {error && (
@@ -116,7 +116,7 @@ export default function LoginPage() {
               placeholder="Username"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white transition-all text-gray-800 placeholder:text-gray-400"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white dark:focus:bg-slate-800 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               disabled={loading}
               required
             />
@@ -129,7 +129,7 @@ export default function LoginPage() {
               placeholder="Password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white transition-all text-gray-800 placeholder:text-gray-400"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white dark:focus:bg-slate-800 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               disabled={loading}
               required
             />
@@ -151,8 +151,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-8 border-t border-gray-50 text-center">
-          <p className="text-gray-500">
+        <div className="mt-8 pt-8 border-t border-gray-50 dark:border-slate-700 text-center">
+          <p className="text-gray-500 dark:text-gray-400">
             New here?
             <a href="/register" className="ml-2 text-purple-600 font-bold hover:text-purple-700 transition-colors">
               Create an account

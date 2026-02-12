@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // Use a function to get the key to ensure it's loaded from ENV correctly
@@ -16,7 +17,7 @@ func getSecretKey() []byte {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := extractToken(c)
+		tokenString := ExtractToken(c)
 		if tokenString == "" {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized: Missing token"})
 			return
@@ -41,7 +42,7 @@ func AuthMiddleware() gin.HandlerFunc {
 }
 func AuthAdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := extractToken(c)
+		tokenString := ExtractToken(c)
 		claims := &CustomClaims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -84,7 +85,7 @@ func SetCookie(c *gin.Context, token string) {
 func SetRoleCookie(c *gin.Context, role string) {
 	c.SetCookie("role", role, 86400, "/", "", true, true)
 }
-func extractToken(c *gin.Context) string {
+func ExtractToken(c *gin.Context) string {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
 		return strings.TrimPrefix(authHeader, "Bearer ")

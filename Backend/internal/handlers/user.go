@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +24,13 @@ func CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required"})
 		return
 	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+	user.Password = string(hashedPassword)
 
 	if err := DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User already exists or DB error"})
@@ -47,58 +53,51 @@ func Login(c *gin.Context) {
 	}
 
 	var foundUser models.User
-	var role string
-	adminPass := os.Getenv("ADMIN_PASSWORD")
+	var role string = "user"
 
-	// 1. "SUPER-ADMIN" Check (ENV Priority)
-	// We check this first to ensure the ENV admin always has a way in.
+	// 1. Check for Hardcoded Admin (Environment Variable)
+	adminPass := os.Getenv("ADMIN_PASSWORD")
 	if strings.EqualFold(input.Name, "admin") && adminPass != "" && input.Password == adminPass {
 		role = "admin"
-		// Try to link to a DB record if it exists for the 'admin' name
-		DB.Where("name = ?", "admin").First(&foundUser)
-		if foundUser.ID == 0 {
+		// Ensure admin exists in DB for ID reference, or create a dummy one if needed for the token
+		// Strategy: Try to find "admin" in DB. If not found, use a fixed ID (999).
+		if err := DB.Where("name = ?", "admin").First(&foundUser).Error; err != nil {
 			foundUser.ID = 999
 			foundUser.Name = "admin"
 		}
 	} else {
-		// 2. DATABASE SEARCH for Regular Users (or DB Admin)
+		// 2. Regular Database Authentication
 		if err := DB.Where("name = ?", input.Name).First(&foundUser).Error; err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
-		// 3. SMART PASSWORD VERIFICATION
-		// First check: Plain-text (helps if you manually typed '12345' in the DB)
-		if input.Password == foundUser.Password {
-			// Password matches exactly as plain text
-		} else {
-			// Second check: Bcrypt (for properly registered users)
-			err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
-			if err != nil {
-				fmt.Printf("Auth failed for %s: Bcrypt and Plain-text mismatch\n", input.Name)
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid name or password"})
+		// Verify Password
+		// Priority: Bcrypt check. Fallback: Plaintext (for legacy/testing data only)
+		if err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password)); err != nil {
+			if foundUser.Password != input.Password {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 				return
 			}
 		}
 
-		// Assign role from DB or default to "user"
 		role = foundUser.Role
 		if role == "" {
 			role = "user"
 		}
 	}
 
-	// 4. TOKEN CREATION
-	usertoken, err := middleware.CreateToken(foundUser.ID, foundUser.Name, role)
+	// 3. Generate Token
+	token, err := middleware.CreateToken(foundUser.ID, foundUser.Name, role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	// 5. SUCCESS
-	middleware.SetCookie(c, usertoken)
+	// 4. Set Cookie & Response
+	middleware.SetCookie(c, token)
 	c.JSON(http.StatusOK, gin.H{
-		"token":    usertoken,
+		"token":    token,
 		"username": foundUser.Name,
 		"role":     role,
 	})
@@ -112,8 +111,8 @@ func Logout(c *gin.Context) {
 
 // Получение текущего имени (Оптимизировано)
 func GetUsername(c *gin.Context) {
-	tokenString, err := c.Cookie("token")
-	if err != nil {
+	tokenString := middleware.ExtractToken(c)
+	if tokenString == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token"})
 		return
 	}

@@ -52,8 +52,8 @@ func SetupRoutes(r *gin.Engine) {
 		admin.GET("/users", handlers.GetAllUsers)
 		admin.PUT("/entries/:id", handlers.UpdateAnyEntry)
 		admin.DELETE("/entries/:id", handlers.DeleteAnyEntry)
-		admin.PUT("/users", handlers.UpdateUser)
-		admin.DELETE("/users", handlers.DeleteUser)
+		admin.PUT("/users/:id", handlers.UpdateUser)
+		admin.DELETE("/users/:id", handlers.DeleteUser)
 	}
 
 	// Swagger and Dash

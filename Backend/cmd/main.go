@@ -69,8 +69,7 @@ func main() {
 	// Initialize Gin router
 	router := gin.Default()
 
-	// Remove the duplicate init() call from handlers.go
-	// The init() function in handlers.go should be deleted
+	// Initialize Gin router
 
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

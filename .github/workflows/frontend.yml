@@ -1,38 +1,16 @@
-name: Frontend CI
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-
-jobs:
-  lint-and-build:
-    name: Lint and Build
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ./frontend
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Node.jsname: Frontend CI | Dashboard Stability
+name: Frontend CI | Dashboard Stability
 
 on:
   push:
     branches: [ main, develop ]
     paths:
       - 'frontend/**'
-      - '.github/workflows/frontend-ci.yml'
+      - '.github/workflows/frontend.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
       - 'frontend/**'
 
-# Prevent multiple builds for the same branch from burning through your minutes
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -53,7 +31,7 @@ jobs:
     - name: 🟢 Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22' # Using the 2026 stable LTS
+        node-version: '20'
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
     
@@ -62,7 +40,6 @@ jobs:
     
     - name: 🏗️ TypeScript Check
       run: npm run type-check
-      # This ensures 'tsc' runs to catch type errors that ESLint might ignore
 
     - name: 🧼 Run ESLint
       run: npm run lint
@@ -70,10 +47,7 @@ jobs:
     - name: 🚀 Build application
       run: npm run build
       env:
-        # Build-time env variables
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.admin-core.com' }}
-        # Setting CI=false can prevent build failure on warnings, but for ADMIN.CORE, 
-        # we want it to fail on warnings to keep the code clean.
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
     
     - name: 📥 Upload build artifact
       uses: actions/upload-artifact@v4
@@ -82,27 +56,4 @@ jobs:
         path: |
           frontend/.next
           !frontend/.next/cache
-        retention-days: 7
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run ESLint
-      run: npm run lint
-    
-    - name: Build application
-      run: npm run build
-      env:
-        NEXT_PUBLIC_API_URL: http://localhost:8080
-    
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: nextjs-build
-        path: frontend/.next
         retention-days: 7

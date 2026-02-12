@@ -60,8 +60,8 @@ export default function LoginPage() {
         throw new Error("No token received from server");
       }
 
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.error || err?.message || "Login failed";
+    } catch (err) {
+      const errorMsg = (err as Error)?.message || "Login failed";
       setError(errorMsg);
     } finally {
       setLoading(false);

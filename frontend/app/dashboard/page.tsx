@@ -22,7 +22,7 @@ export default function DashboardPage() {
             />
             <div>
               <h3 className="font-bold text-yellow-800 dark:text-yellow-400">Connection Error</h3>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300">{(error as any).message || 'Failed to load entries'}</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">{error instanceof Error ? error.message : 'Failed to load entries'}</p>
               <p className="text-xs text-yellow-600 dark:text-yellow-400/80 mt-1">
                 Backend should be running on {process.env.NEXT_PUBLIC_API_URL}
               </p>

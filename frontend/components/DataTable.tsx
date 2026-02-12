@@ -6,8 +6,7 @@ import {
   Calendar, 
   Briefcase, 
   Lightbulb, 
-  Heart, 
-  Loader2,
+  Heart,
   Search,
   Edit,
   Eye

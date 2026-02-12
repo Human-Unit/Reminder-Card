@@ -20,7 +20,7 @@ export default function Header() {
         // Проверяем разные варианты ответа от бэкенда
         const name = res.data.username || res.data.name || res.data.user?.name || 'User';
         setUsername(name);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to fetch username:', err);
         setError('Could not load username');
         setUsername('User');

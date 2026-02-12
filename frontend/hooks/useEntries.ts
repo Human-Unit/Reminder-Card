@@ -9,6 +9,7 @@ const fetchEntries = async (): Promise<Entry[]> => {
     const rawData = Array.isArray(res.data) ? res.data : (res.data.data || res.data.entries || []);
 
     // Normalize data to handle ID/id and case mismatch
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return rawData.map((item: any) => ({
         ID: item.ID || item.id,
         situation: item.situation || item.Situation,

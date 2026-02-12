@@ -13,7 +13,7 @@ interface EditModalProps {
 }
 
 export const EditModal = ({ isOpen, type, item, onClose, onSave }: EditModalProps) => {
-  const [formData, setFormData] = useState<any>(item || {});
+  const [formData, setFormData] = useState<Partial<TableItem>>(item || {});
   const [saving, setSaving] = useState(false);
 
   if (!isOpen || !item) return null;
@@ -66,16 +66,16 @@ export const EditModal = ({ isOpen, type, item, onClose, onSave }: EditModalProp
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Situation</label>
                 <input
-                  value={(formData as Entry).Situation}
-                  onChange={(e) => setFormData({ ...formData, Situation: e.target.value })}
+                  value={(formData as Entry).situation}
+                  onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
                   className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Text</label>
                 <textarea
-                  value={(formData as Entry).Text}
-                  onChange={(e) => setFormData({ ...formData, Text: e.target.value })}
+                  value={(formData as Entry).text}
+                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
                   className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
                 />
               </div>

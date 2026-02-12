@@ -8,7 +8,7 @@ import { StatCard } from "@/components/StatCard";
 import { DataTable } from "@/components/DataTable";
 import { Toast, ToastType } from "@/components/Toast"; // Assumes you saved the Toast component
 import { ConfirmModal } from "@/components/ConfirmModal"; // Assumes you saved the ConfirmModal component
-import { Users, BookOpen, CheckCircle2, Search, Loader2, Edit, Eye, X } from "lucide-react";
+import { Users, BookOpen, CheckCircle2, Search, Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 // --- Types ---
@@ -76,11 +76,9 @@ export default function AdminPanel() {
         users: usersRes.data ?? [],
         entries: entriesRes.data ?? [],
       });
-    } catch (err: any) {
+    } catch {
       showToast("Failed to fetch system data", "error");
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
-        router.replace("/dashboard");
-      }
+      router.replace("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -106,7 +104,7 @@ export default function AdminPanel() {
         "success",
       );
       loadData(); // Refresh list
-    } catch (err) {
+    } catch {
       showToast("Deletion failed. Please try again.", "error");
     } finally {
       setIsDeleting(false);
@@ -141,9 +139,8 @@ export default function AdminPanel() {
       showToast("User updated successfully", "success");
       setEditModal({ show: false, user: null });
       loadData();
-    } catch (err: any) {
-      const msg = err?.response?.data?.error || "Update failed";
-      showToast(msg, "error");
+    } catch {
+      showToast("Update failed", "error");
     } finally {
       setIsUpdating(false);
     }
@@ -260,7 +257,7 @@ export default function AdminPanel() {
         {/* Data Display */}
         <DataTable
           type={activeTab}
-          data={currentList as any[]} // This bypasses the error
+          data={currentList}
           onDelete={triggerDelete}
           onEdit={activeTab === 'users' ? openEditModal : undefined}
           onViewEntries={activeTab === 'users' ? viewUserEntries : undefined}

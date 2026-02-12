@@ -31,8 +31,8 @@ export default function RegisterPage() {
       await api.post('/user/create', form);
       // После регистрации отправляем на логин
       router.push('/login');
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.error || err?.message || 'Registration failed';
+    } catch (err) {
+      const errorMsg = (err as Error)?.message || 'Registration failed';
       setError(errorMsg);
     } finally {
       setLoading(false);

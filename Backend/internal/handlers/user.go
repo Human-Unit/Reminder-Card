@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 
+	"fmt"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -37,6 +40,7 @@ func Login(c *gin.Context) {
 		Name     string `json:"name" binding:"required"`
 		Password string `json:"password" binding:"required"`
 	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
@@ -44,42 +48,55 @@ func Login(c *gin.Context) {
 
 	var foundUser models.User
 	var role string
+	adminPass := os.Getenv("ADMIN_PASSWORD")
 
-	// 1. Сначала проверяем на "Супер-админа" из ENV
-	if input.Name == "admin" && input.Password == os.Getenv("ADMIN_PASSWORD") {
+	// 1. "SUPER-ADMIN" Check (ENV Priority)
+	// We check this first to ensure the ENV admin always has a way in.
+	if strings.EqualFold(input.Name, "admin") && adminPass != "" && input.Password == adminPass {
 		role = "admin"
-		// Пытаемся найти запись в БД для ID, но если не нашли — не страшно
+		// Try to link to a DB record if it exists for the 'admin' name
 		DB.Where("name = ?", "admin").First(&foundUser)
 		if foundUser.ID == 0 {
-			foundUser.ID = 999 // Временный ID для виртуального админа
+			foundUser.ID = 999
 			foundUser.Name = "admin"
 		}
 	} else {
-		// 2. Если не админ, тогда идем в базу искать обычного юзера
-		role = "user"
+		// 2. DATABASE SEARCH for Regular Users (or DB Admin)
 		if err := DB.Where("name = ?", input.Name).First(&foundUser).Error; err != nil {
-			// Вот здесь "record not found" теперь уместен
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid name or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
 			return
 		}
 
-		// 3. Проверяем bcrypt только для обычных юзеров
-		err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid name or password"})
-			return
+		// 3. SMART PASSWORD VERIFICATION
+		// First check: Plain-text (helps if you manually typed '12345' in the DB)
+		if input.Password == foundUser.Password {
+			// Password matches exactly as plain text
+		} else {
+			// Second check: Bcrypt (for properly registered users)
+			err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
+			if err != nil {
+				fmt.Printf("Auth failed for %s: Bcrypt and Plain-text mismatch\n", input.Name)
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid name or password"})
+				return
+			}
+		}
+
+		// Assign role from DB or default to "user"
+		role = foundUser.Role
+		if role == "" {
+			role = "user"
 		}
 	}
 
-	// 4. Генерация токена (роль уже определена выше)
+	// 4. TOKEN CREATION
 	usertoken, err := middleware.CreateToken(foundUser.ID, foundUser.Name, role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token creation failed"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
+	// 5. SUCCESS
 	middleware.SetCookie(c, usertoken)
-	// middleware.SetRoleCookie(c, role)
 	c.JSON(http.StatusOK, gin.H{
 		"token":    usertoken,
 		"username": foundUser.Name,

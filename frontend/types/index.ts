@@ -1,19 +1,19 @@
 // types/index.ts
-export interface Entry {
-  id: number;
-  userId: number;
-  situation: string;
-  text: string;
-  colour: string;
-  icon: string;
-  createdAt: string;
-}
-export interface User {
-  id: number;
-  name: string;
+interface User {
+  ID: number;        // Must be ID (uppercase)
+  name: string;      // Must be name (lowercase)
   email: string;
-  role: string;
-  createdAt: string;
+  role?: string;
+  CreatedAt: string; // Required by BaseItem
+}
+
+interface Entry {
+  ID: number;
+  Situation: string; // Must match EntryItem casing
+  Text: string;
+  Colour: string;
+  Icon: string;
+  CreatedAt: string;
 }
 export interface UserResponse {
   username: string;

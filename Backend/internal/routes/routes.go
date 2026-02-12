@@ -4,6 +4,9 @@ import (
 	handlers "Base/internal/handlers"
 
 	"Base/internal/middleware"
+	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -11,45 +14,48 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine) {
+	// 1. IMPROVED CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
-	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+	// 2. PUBLIC USER ROUTES (No Token Needed)
+	public := r.Group("/user")
+	{
+		public.POST("/login", handlers.Login)
+		public.POST("/create", handlers.CreateUser) // Registration
+	}
 
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
+	// 3. PROTECTED USER ROUTES (Token Needed!)
+	// This is why regular users weren't getting data properly
+	protectedUser := r.Group("/user")
+	protectedUser.Use(middleware.AuthMiddleware())
+	{
+		protectedUser.POST("/logout", handlers.Logout)
+		protectedUser.POST("/getusername", handlers.GetUsername)
+		protectedUser.GET("/entries", handlers.GetEntries) // Now works because middleware sets UserID
+		protectedUser.POST("/entries", handlers.CreateEntry)
+		protectedUser.PUT("/entries/:id", handlers.UpdateEntry)
+		protectedUser.DELETE("/entries/:id", handlers.DeleteEntry)
+	}
 
-	dash := r.Group("/dashboard")
-	dash.Use(middleware.AuthMiddleware())
-	dash.GET("", func(c *gin.Context) {
-		c.File("./site/dashboard.html")
-	})
+	// 4. ADMIN ROUTES
+	admin := r.Group("/admin")
+	admin.Use(middleware.AuthAdminMiddleware())
+	{
+		admin.GET("/entries", handlers.GetAllEntries)
+		admin.GET("/users", handlers.GetAllUsers)
+		admin.PUT("/entries/:id", handlers.UpdateAnyEntry)
+		admin.DELETE("/entries/:id", handlers.DeleteAnyEntry)
+		admin.PUT("/users", handlers.UpdateUser)
+		admin.DELETE("/users", handlers.DeleteUser)
+	}
 
+	// Swagger and Dash
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	User := r.Group("/user")
-
-	User.POST("/entries", handlers.CreateEntry)
-	User.POST("/logout", handlers.Logout)
-	User.POST("/getusername", handlers.GetUsername)
-	User.GET("/entries", handlers.GetEntries)
-	User.POST("/create", handlers.CreateUser)
-	User.POST("/login", handlers.Login)
-	User.PUT("/entries/:id", handlers.UpdateEntry)
-	User.DELETE("/entries/:id", handlers.DeleteEntry)
-
-	Admin := r.Group("/admin")
-	Admin.Use(middleware.AuthAdminMiddleware())
-	Admin.GET("/entries", handlers.GetAllEntries)
-	Admin.GET("/users", handlers.GetAllUsers)
-	Admin.PUT("/entries/:id", handlers.UpdateAnyEntry)
-	Admin.DELETE("/entries/:id", handlers.DeleteAnyEntry)
-	Admin.PUT("/users", handlers.UpdateUser)
-	Admin.DELETE("/users", handlers.DeleteUser)
 }

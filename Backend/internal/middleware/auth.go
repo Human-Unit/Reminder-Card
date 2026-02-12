@@ -1,96 +1,59 @@
 package middleware
 
 import (
-	"log"
-	"os"
-
-	"time"
-
 	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"os"
+	"strings"
+	"time"
 )
 
-var secretKey []byte = []byte(os.Getenv("SecretKey"))
+// Use a function to get the key to ensure it's loaded from ENV correctly
+func getSecretKey() []byte {
+	return []byte(os.Getenv("SecretKey"))
+}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Accept token from Authorization header (Bearer ...) or cookie as fallback
-		tokenString := c.GetHeader("Authorization")
+		tokenString := extractToken(c)
 		if tokenString == "" {
-			// cookie fallback
-			var err error
-			tokenString, err = c.Cookie("token")
-			if err != nil || tokenString == "" {
-				c.JSON(401, gin.H{"error": "Unauthorized: Missing token"})
-				c.Abort()
-				return
-			}
-		} else {
-			const bearerPrefix = "Bearer "
-			if len(tokenString) > len(bearerPrefix) && tokenString[:len(bearerPrefix)] == bearerPrefix {
-				tokenString = tokenString[len(bearerPrefix):]
-			}
+			c.AbortWithStatusJSON(401, gin.H{"error": "Unauthorized: Missing token"})
+			return
 		}
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.NewValidationError("unexpected signing method", jwt.ValidationErrorSignatureInvalid)
-			}
-			return secretKey, nil
+		claims := &CustomClaims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return getSecretKey(), nil
 		})
 
 		if err != nil || !token.Valid {
-			log.Printf("Invalid token: %v", err)
-			c.JSON(401, gin.H{"error": "Invalid token"})
-			c.Abort()
+			c.AbortWithStatusJSON(401, gin.H{"error": "Invalid token"})
 			return
 		}
+
+		// CRITICAL: You must set these so your handlers can use them!
+		c.Set("userID", claims.UserID)
+		c.Set("username", claims.Username)
+		c.Set("role", claims.Role)
 		c.Next()
 	}
 }
 func AuthAdminMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
-		if tokenString == "" {
-			// cookie fallback
-			var err error
-			tokenString, err = c.Cookie("token")
-			if err != nil || tokenString == "" {
-				c.JSON(401, gin.H{"error": "Unauthorized: Missing token"})
-				c.Abort()
-				return
-			}
-		} else {
-			const bearerPrefix = "Bearer "
-			if len(tokenString) > len(bearerPrefix) && tokenString[:len(bearerPrefix)] == bearerPrefix {
-				tokenString = tokenString[len(bearerPrefix):]
-			}
-		}
-		// Parse token with our CustomClaims so claims are populated correctly
+		tokenString := extractToken(c)
 		claims := &CustomClaims{}
+
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.NewValidationError("unexpected signing method", jwt.ValidationErrorSignatureInvalid)
-			}
-			return secretKey, nil
+			return getSecretKey(), nil
 		})
 
-		if err != nil || !token.Valid {
-			log.Printf("Invalid token: %v", err)
-			c.JSON(401, gin.H{"error": "Invalid token"})
-			c.Abort()
+		if err != nil || !token.Valid || claims.Role != "admin" {
+			c.AbortWithStatusJSON(403, gin.H{"error": "Forbidden: Admin access required"})
 			return
 		}
 
-		// At this point claims is populated by ParseWithClaims
-		if claims.Role != "admin" {
-			c.JSON(403, gin.H{"error": "Forbidden: Admin access required"})
-			c.Abort()
-			return
-		}
-
+		c.Set("userID", claims.UserID)
 		c.Next()
 	}
 }
@@ -108,17 +71,26 @@ func CreateToken(userID uint, username string, role string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(secretKey)
+	tokenString, err := token.SignedString(getSecretKey())
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
 }
 func SetCookie(c *gin.Context, token string) {
-	c.SetCookie("token", token, 86400, "/", "", true, true)
+	// Set secure to FALSE for localhost testing, otherwise it won't save
+	c.SetCookie("token", token, 86400, "/", "", false, true)
 }
 func SetRoleCookie(c *gin.Context, role string) {
 	c.SetCookie("role", role, 86400, "/", "", true, true)
+}
+func extractToken(c *gin.Context) string {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		return strings.TrimPrefix(authHeader, "Bearer ")
+	}
+	t, _ := c.Cookie("token")
+	return t
 }
 
 func GetUsernameFromToken(tokenString string) (string, error) {
@@ -127,7 +99,7 @@ func GetUsernameFromToken(tokenString string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return secretKey, nil
+		return getSecretKey(), nil
 	})
 
 	if err != nil {
@@ -156,7 +128,7 @@ func GetUserIDFromToken(tokenString string) (uint, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		// Return your secret key
-		return secretKey, nil
+		return getSecretKey(), nil
 	})
 
 	if err != nil {

@@ -13,10 +13,10 @@ type User struct {
 }
 
 type Entry struct {
-	gorm.Model
-	UserID    uint   `gorm:"not null" json:"userId"`
-	Situation string `gorm:"not null" json:"situation"`
-	Text      string `gorm:"not null" json:"text"`
-	Colour    string `gorm:"not null" json:"colour"`
-	Icon      string `gorm:"not null" json:"icon"`
+    ID        uint      `gorm:"primaryKey" json:"id"` // Explicitly 'id'
+    Situation string    `json:"situation"`
+    Text      string    `json:"text"`
+    Icon      string    `json:"icon"`
+    Colour    string    `json:"colour"`
+    UserID    uint      `json:"user_id"`
 }

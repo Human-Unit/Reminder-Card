@@ -22,12 +22,17 @@ jobs:
     
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: frontend
     
     steps:
     - name: 🛰️ Checkout code
       uses: actions/checkout@v4
     
+    - name: 📁 Debug File System
+      working-directory: .
+      run: |
+        ls -R
+
     - name: 🟢 Set up Node.js
       uses: actions/setup-node@v4
       with:

@@ -22,11 +22,17 @@ jobs:
     
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: backend
     
     steps:
     - name: 🛰️ Checkout code
       uses: actions/checkout@v4
+
+    - name: 📁 Debug File System
+      working-directory: .
+      run: |
+        ls -R
+
     
     - name: 🐹 Set up Go
       uses: actions/setup-go@v5

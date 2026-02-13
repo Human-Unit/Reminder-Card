@@ -52,12 +52,12 @@ export default function Header() {
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white p-6 rounded-2xl shadow-sm flex justify-between items-center mb-6"
+      className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-transparent dark:border-slate-800 flex justify-between items-center mb-6 transition-colors"
     >
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-purple-100 overflow-hidden border-2 border-purple-500 p-1">
+        <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 overflow-hidden border-2 border-purple-500 p-1">
           {isLoading ? (
-            <div className="w-full h-full bg-gray-300 animate-pulse"></div>
+            <div className="w-full h-full bg-gray-300 dark:bg-slate-700 animate-pulse"></div>
           ) : (
             <img 
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} 
@@ -67,10 +67,10 @@ export default function Header() {
           )}
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-800">
-            Welcome back, <span className="text-purple-600">{username}</span>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-slate-100">
+            Welcome back, <span className="text-purple-600 dark:text-purple-400">{username}</span>
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-slate-400 text-sm">
             {error ? <span className="text-red-500">{error}</span> : 'Ready to reflect on your day?'}
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function Header() {
       
       <button 
         onClick={handleSignOut}
-        className="flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors group"
+        className="flex items-center gap-2 text-gray-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors group"
         title="Sign out"
       >
         <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />

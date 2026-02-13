@@ -23,7 +23,7 @@ A full-stack web application for managing personal memories and experiences with
 - **Gin** - Web framework for routing and middleware
 - **GORM** - ORM for database operations
 - **JWT** - Token-based authentication
-- **SQLite** - Lightweight database (easily swappable)
+- **PostgreSQL** - Robust relational database
 - **Swagger** - API documentation
 
 ### Frontend
@@ -82,6 +82,27 @@ npm run dev
 ```
 
 The frontend will start on `http://localhost:3000`
+
+### Docker Setup (Recommended)
+
+Running the entire stack with Docker Compose is the easiest way to get started.
+
+```bash
+# Set up environment variables first
+# For backend
+echo "ADMIN_PASSWORD=your_secure_password" > backend/.env
+# For frontend
+echo "NEXT_PUBLIC_API_URL=http://localhost:8080" > frontend/.env.local
+
+# Run everything
+docker compose up --build
+```
+
+The application will be available at:
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8080`
+- API Docs: `http://localhost:8080/swagger/index.html`
+
 
 ## 🔧 Environment Variables
 

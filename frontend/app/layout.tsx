@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ThemeProvider } from "next-themes";
+import ThemeAnimate from "@/components/ThemeAnimate";
 
 export default function RootLayout({
   children,
@@ -33,10 +34,12 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Providers>
-            <div className="relative min-h-screen">
-              {children}
-              <ThemeToggle />
-            </div>
+            <ThemeAnimate>
+              <div className="relative min-h-screen">
+                {children}
+                <ThemeToggle />
+              </div>
+            </ThemeAnimate>
           </Providers>
         </ThemeProvider>
       </body>

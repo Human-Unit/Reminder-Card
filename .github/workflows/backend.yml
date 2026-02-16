@@ -28,16 +28,10 @@ jobs:
     - name: 🛰️ Checkout code
       uses: actions/checkout@v4
 
-    - name: 📁 Debug File System
-      working-directory: .
-      run: |
-        ls -R
-
-    
     - name: 🐹 Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: '1.24'
         cache: true
         cache-dependency-path: backend/go.sum
     
@@ -50,9 +44,18 @@ jobs:
     - name: 📦 Install dependencies
       run: go mod download
     
-    - name: 🔍 Run go vet
-      run: go vet ./...
+    - name: 🔍 Run golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+        working-directory: backend
+        args: --timeout=5m
 
+    - name: 🔐 Run gosec
+      uses: securego/gosec@master
+      with:
+        args: ./...
+    
     - name: 🧪 Run tests with Race Detection
       run: go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
     
@@ -64,6 +67,23 @@ jobs:
       run: |
         go build -v -ldflags="-s -w" -o server ./cmd/main.go
 
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # This is the critical fix for the naming error
+    - name: 🏷️ Lowercase Registry Owner
+      id: owner
+      run: |
+        echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER@L}" >> $GITHUB_ENV
+
+    - name: 🔑 Login to GHCR
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     - name: 🐳 Build and Push Docker Image
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
       uses: docker/build-push-action@v5
@@ -71,8 +91,10 @@ jobs:
         context: ./backend
         push: true
         tags: |
-          ghcr.io/${{ github.repository_owner }}/reminder-backend:latest
-          ghcr.io/${{ github.repository_owner }}/reminder-backend:${{ github.sha }}
+          ghcr.io/${{ env.OWNER_LC }}/reminder-backend:latest
+          ghcr.io/${{ env.OWNER_LC }}/reminder-backend:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     
     - name: 📥 Upload coverage
       uses: actions/upload-artifact@v4

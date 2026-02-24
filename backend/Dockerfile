@@ -26,8 +26,6 @@ RUN apk add --no-cache ca-certificates tzdata
 
 # Copy binary from builder
 COPY --from=builder /app/server .
-# Copy .env.example if needed as a template
-COPY .env.example .env
 
 EXPOSE 8080
 

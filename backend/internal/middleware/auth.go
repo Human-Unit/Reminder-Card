@@ -12,7 +12,7 @@ import (
 
 // Use a function to get the key to ensure it's loaded from ENV correctly
 func getSecretKey() []byte {
-	return []byte(os.Getenv("SecretKey"))
+	return []byte(os.Getenv("JWT_SECRET"))
 }
 
 func AuthMiddleware() gin.HandlerFunc {

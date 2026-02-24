@@ -92,13 +92,18 @@ func GetAllEntries(c *gin.Context) {
 }
 
 func UpdateAnyEntry(c *gin.Context) {
-	id := c.Param("id")
-	var entry models.Entry
-	// Проверяем, существует ли запись и принадлежит ли она пользователю
-	if err := DB.Where("id = ?", id).First(&entry).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Entry not found"})
-		return
-	}
+	idParam := c.Param("id")
+    var user models.User
+    if err := c.ShouldBindJSON(&user); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+        return
+    }
+
+	var userToUpdate models.User
+    if err := DB.First(&userToUpdate, "id = ?", idParam).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
 
 	// Привязываем новые данные
 	if err := c.ShouldBindJSON(&entry); err != nil {

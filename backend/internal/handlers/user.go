@@ -58,18 +58,20 @@ func Login(c *gin.Context) {
 	// 1. Check for Hardcoded Admin (Environment Variable)
 	adminPass := os.Getenv("ADMIN_PASSWORD")
 	if strings.EqualFold(input.Name, "admin") && adminPass != "" && input.Password == adminPass {
-		role = "admin"
-		// Ensure admin exists in DB for ID reference, or create a dummy one if needed for the token
-		// Strategy: Try to find "admin" in DB. If not found, use a fixed ID (999).
-		if err := DB.Where("name = ?", "admin").First(&foundUser).Error; err != nil {
-			foundUser.ID = 999
-			foundUser.Name = "admin"
-		}
-	} else {
+        role = "admin"
+        if err := DB.Where("name = ?", "admin").First(&foundUser).Error; err != nil {
+            foundUser.ID = 999
+            foundUser.Name = "admin"
+        }
+    } else {
 		// 2. Regular Database Authentication
 		if err := DB.Where("name = ?", input.Name).First(&foundUser).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
+		role = foundUser.Role
+        if role == "" {
+            role = "user"
+        }
 		}
 
 		// Verify Password

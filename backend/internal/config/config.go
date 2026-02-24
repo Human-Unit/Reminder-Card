@@ -18,17 +18,20 @@ type Config struct {
 }
 
 func Load() *Config {
-    _ = godotenv.Load() 
+	// Load .env file if it exists. 
+	// We use _ to ignore the error because in production/Docker, 
+	// environment variables are often provided directly without a .env file.
+	_ = godotenv.Load()
 
-    return &Config{
-        DBHost:     os.Getenv("DB_HOST"),
-        DBPort:     getInt("DB_PORT", 5432),
-        DBUser:     os.Getenv("DB_USER"),
-        DBPassword: os.Getenv("DB_PASSWORD"),
-        DBName:     os.Getenv("DB_NAME"),
-        DBSSLMode:  getString("DB_SSLMODE", "disable"),
-        ServerPort: getInt("SERVER_PORT", 8080),
-    }
+	return &Config{
+		DBHost:     os.Getenv("DB_HOST"),
+		DBPort:     getInt("DB_PORT", 5432),
+		DBUser:     os.Getenv("DB_USER"),
+		DBPassword: os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
+		DBSSLMode:  getString("DB_SSLMODE", "disable"),
+		ServerPort: getInt("SERVER_PORT", 8080),
+	}
 }
 
 func getString(key, defaultValue string) string {

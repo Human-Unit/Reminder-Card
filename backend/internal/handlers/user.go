@@ -5,7 +5,6 @@ import (
 	"Base/internal/models"
 	"net/http"
 	"os"
-
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -53,29 +52,23 @@ func Login(c *gin.Context) {
 	}
 
 	var foundUser models.User
-	var role string = "user"
+	var role string // FIX: Removed initial "user" value to prevent ineffectual assignment
 
 	// 1. Check for Hardcoded Admin (Environment Variable)
 	adminPass := os.Getenv("ADMIN_PASSWORD")
 	if strings.EqualFold(input.Name, "admin") && adminPass != "" && input.Password == adminPass {
-        role = "admin"
-        if err := DB.Where("name = ?", "admin").First(&foundUser).Error; err != nil {
-            foundUser.ID = 999
-            foundUser.Name = "admin"
-        }
-    } else {
+		role = "admin"
+		if err := DB.Where("name = ?", "admin").First(&foundUser).Error; err != nil {
+			foundUser.ID = 999
+			foundUser.Name = "admin"
+		}
+	} else {
 		// 2. Regular Database Authentication
 		if err := DB.Where("name = ?", input.Name).First(&foundUser).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
-		role = foundUser.Role
-        if role == "" {
-            role = "user"
-        }
 		}
 
-		// Verify Password
-		// Priority: Bcrypt check. Fallback: Plaintext (for legacy/testing data only)
 		if err := bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password)); err != nil {
 			if foundUser.Password != input.Password {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
@@ -89,14 +82,12 @@ func Login(c *gin.Context) {
 		}
 	}
 
-	// 3. Generate Token
 	token, err := middleware.CreateToken(foundUser.ID, foundUser.Name, role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	// 4. Set Cookie & Response
 	middleware.SetCookie(c, token)
 	c.JSON(http.StatusOK, gin.H{
 		"token":    token,
@@ -104,14 +95,13 @@ func Login(c *gin.Context) {
 		"role":     role,
 	})
 }
+
 func Logout(c *gin.Context) {
-	// Устанавливаем куку с тем же именем, но сроком действия -1 (удаление)
 	c.SetCookie("token", "", -1, "/", "localhost", false, true)
 	c.SetCookie("role", "", -1, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
 
-// Получение текущего имени (Оптимизировано)
 func GetUsername(c *gin.Context) {
 	tokenString := middleware.ExtractToken(c)
 	if tokenString == "" {

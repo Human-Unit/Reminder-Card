@@ -14,9 +14,9 @@ func GetAllUsers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
 		return
 	}
-
 	c.JSON(http.StatusOK, users)
 }
+
 func UpdateUser(c *gin.Context) {
 	idParam := c.Param("id")
 	var user models.User
@@ -25,16 +25,9 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// If ID is provided in URL, it takes precedence
-	if idParam != "" {
-		// You might need strconv here if ID is int,
-		// but GORM can sometimes handle string IDs if the DB driver supports it,
-		// or we should convert it. Let's convert for safety.
-		// note: "strconv" needs to be imported if not present.
-		// logic below assumes 'idParam' is valid.
-	}
+	// FIX: Removed the empty if branch that was here.
+	// GORM's First method below handles the idParam correctly.
 
-	// Since we need to use the ID from the URL to find the record to update:
 	var userToUpdate models.User
 	if err := DB.First(&userToUpdate, "id = ?", idParam).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -43,7 +36,7 @@ func UpdateUser(c *gin.Context) {
 
 	updates := map[string]interface{}{
 		"name": user.Name,
-		"role": user.Role, // Allow updating role too if needed
+		"role": user.Role,
 	}
 
 	if user.Password != "" {
@@ -73,11 +66,9 @@ func DeleteUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
-	// Also delete entries
-	if err := DB.Delete(&models.Entry{}, "user_id = ?", id).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user entries"})
-		return
-	}
+	
+	_ = DB.Delete(&models.Entry{}, "user_id = ?", id)
+	
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
 
@@ -87,25 +78,17 @@ func GetAllEntries(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
-
 	c.JSON(http.StatusOK, entries)
 }
 
 func UpdateAnyEntry(c *gin.Context) {
-	idParam := c.Param("id")
-    var user models.User
-    if err := c.ShouldBindJSON(&user); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-        return
-    }
+	id := c.Param("id")
+	var entry models.Entry
+	if err := DB.Where("id = ?", id).First(&entry).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Entry not found"})
+		return
+	}
 
-	var userToUpdate models.User
-    if err := DB.First(&userToUpdate, "id = ?", idParam).Error; err != nil {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
-
-	// Привязываем новые данные
 	if err := c.ShouldBindJSON(&entry); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
 		return
@@ -122,6 +105,5 @@ func DeleteAnyEntry(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Entry not found"})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Entry deleted successfully"})
 }

@@ -40,7 +40,7 @@ func Load() *Config {
 
     // Load .env file if it exists
 
-    godotenv.Load()
+    _ = godotenv.Load()
 
 
 

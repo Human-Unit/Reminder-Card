@@ -25,14 +25,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// If ID is provided in URL, it takes precedence
-	if idParam != "" {
-		// You might need strconv here if ID is int,
-		// but GORM can sometimes handle string IDs if the DB driver supports it,
-		// or we should convert it. Let's convert for safety.
-		// note: "strconv" needs to be imported if not present.
-		// logic below assumes 'idParam' is valid.
-	}
+	// idParam is used below to look up the user record
 
 	// Since we need to use the ID from the URL to find the record to update:
 	var userToUpdate models.User

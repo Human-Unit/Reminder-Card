@@ -19,6 +19,9 @@ jobs:
   quality-check:
     name: quality-and-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
     defaults:
       run:
@@ -53,10 +56,15 @@ jobs:
     - name: 🚀 Build application
       run: npm run build
       env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL != '' && secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
 
     - name: 🐳 Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: 🏷️ Lowercase Registry Owner
+      id: prep
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+      run: echo "owner_lc=${GITHUB_REPOSITORY_OWNER@L}" >> $GITHUB_OUTPUT
 
     - name: 🔑 Login to GHCR
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
@@ -73,10 +81,10 @@ jobs:
         context: ./frontend
         push: true
         build-args: |
-          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL != '' && secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
         tags: |
-          ghcr.io/${{ github.repository_owner }}/reminder-frontend:latest
-          ghcr.io/${{ github.repository_owner }}/reminder-frontend:${{ github.sha }}
+          ghcr.io/${{ steps.prep.outputs.owner_lc }}/reminder-frontend:latest
+          ghcr.io/${{ steps.prep.outputs.owner_lc }}/reminder-frontend:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
     

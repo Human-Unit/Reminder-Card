@@ -17,7 +17,10 @@ export default function ThemeAnimate({
   const [mounted, setMounted] = useState(false);
 
   // Wait for mount to avoid hydration mismatch
-  useEffect(() => setMounted(true), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return <div className={className}>{children}</div>;

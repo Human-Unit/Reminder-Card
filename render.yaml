@@ -13,6 +13,7 @@ services:
     dockerContext: ./backend
     region: oregon
     plan: free
+    port: 8080
     healthCheckPath: /health
     envVars:
       - key: DB_HOST

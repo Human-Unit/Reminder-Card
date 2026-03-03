@@ -56,16 +56,6 @@ services:
       paths:
         - frontend/**
         - render.yaml
-    dockerBuildArgs:
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: reminder-backend
-          type: web
-          property: host
-          envVarKey: NEXT_PUBLIC_API_URL
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: reminder-backend
-          type: web
-          property: host
+        sync: false   # Enter your backend URL manually: https://reminder-backend.onrender.com

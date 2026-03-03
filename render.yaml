@@ -38,7 +38,7 @@ services:
       - key: DB_SSLMODE
         value: require
       - key: Server_Port
-        value: "10000"
+        value: "8080"
       - key: JWT_SECRET
         generateValue: true   # Render auto-generates a secure random value
       - key: ADMIN_PASSWORD

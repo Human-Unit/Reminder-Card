@@ -1,0 +1,71 @@
+databases:
+  - name: reminder-db
+    databaseName: reminder_db
+    plan: free
+    region: oregon
+
+services:
+  # ── Backend (Go API) ───────────────────────────────────────────────
+  - type: web
+    name: reminder-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: reminder-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: reminder-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: reminder-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: reminder-db
+          property: database
+      - key: DB_PORT
+        fromDatabase:
+          name: reminder-db
+          property: port
+      - key: DB_SSLMODE
+        value: require
+      - key: Server_Port
+        value: "8080"
+      - key: JWT_SECRET
+        generateValue: true   # Render auto-generates a secure random value
+      - key: ADMIN_PASSWORD
+        sync: false           # You will be prompted to set this in the Render dashboard
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────
+  - type: web
+    name: reminder-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    region: oregon
+    plan: free
+    buildFilter:
+      paths:
+        - frontend/**
+        - render.yaml
+    dockerBuildArgs:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: reminder-backend
+          type: web
+          property: host
+          envVarKey: NEXT_PUBLIC_API_URL
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: reminder-backend
+          type: web
+          property: host

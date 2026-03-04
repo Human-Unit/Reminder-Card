@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	godoenv "github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // @title           Portfolio API
@@ -48,6 +49,27 @@ func main() {
 	// Auto-migrate database models to create tables
 	if err := db.AutoMigrate(&models.User{}, &models.Entry{}); err != nil {
 		log.Fatal("Failed to auto-migrate database:", err)
+	}
+
+	// Seed admin user if ADMIN_PASSWORD is set and no admin exists
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminPassword != "" {
+		var adminUser models.User
+		if err := db.Where("role = ?", "admin").First(&adminUser).Error; err != nil {
+			importBcryptPassword, _ := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+			adminUser = models.User{
+				Name:     "admin",
+				Email:    "admin@example.com",
+				Password: string(importBcryptPassword),
+				Role:     "admin",
+			}
+			db.Create(&adminUser)
+			log.Println("Admin user seeded successfully.")
+		} else if adminUser.Name != "admin" {
+			// Just in case existing admin has different name
+			adminUser.Name = "admin"
+			db.Save(&adminUser)
+		}
 	}
 
 	// Test database connection

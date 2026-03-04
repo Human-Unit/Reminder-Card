@@ -77,13 +77,23 @@ func main() {
 		})
 	})
 
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+
 	router.Use(gin.Recovery())
 	routes.SetupRoutes(router)
 
-	port := os.Getenv("Server_Port")
+	// Use standard PORT environment variable which Render defaults to
+	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
-		log.Printf("Server_Port not set, defaulting to %s", port)
+		port = os.Getenv("Server_Port") // Keep backward compatibility with our own custom setting if PORT is not present
+		if port == "" {
+			port = "8080"
+		}
+		log.Printf("PORT not set, defaulting to %s", port)
 	}
 
 	if err := router.Run(":" + port); err != nil {

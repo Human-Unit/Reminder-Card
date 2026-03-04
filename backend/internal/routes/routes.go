@@ -2,6 +2,7 @@ package routes
 
 import (
 	handlers "Base/internal/handlers"
+	"os"
 
 	"Base/internal/middleware"
 	"time"
@@ -15,8 +16,12 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 	// 1. IMPROVED CORS
+	allowedOrigin := os.Getenv("CORS_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{allowedOrigin, "http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},

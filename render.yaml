@@ -41,6 +41,8 @@ services:
         generateValue: true   # Render auto-generates a secure random value
       - key: ADMIN_PASSWORD
         sync: false           # You will be prompted to set this in the Render dashboard
+      - key: CORS_ORIGIN
+        value: https://reminder-frontend.onrender.com
 
   # ── Frontend (Next.js) ────────────────────────────────────────────
   - type: web
@@ -56,4 +58,4 @@ services:
         - render.yaml
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        sync: false   # Enter your backend URL manually: https://reminder-backend.onrender.com
+        value: https://reminder-backend-a40q.onrender.com

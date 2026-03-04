@@ -10,10 +10,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-# We provide a default API URL for the build stage, but it should be overridden at runtime if needed
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Use a placeholder so the real URL can be injected at runtime via entrypoint.sh
+ENV NEXT_PUBLIC_API_URL=__NEXT_PUBLIC_API_URL_PLACEHOLDER__
 
 RUN npm run build
 
@@ -31,6 +29,11 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 3000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]

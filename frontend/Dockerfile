@@ -10,8 +10,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Use a placeholder so the real URL can be injected at runtime via entrypoint.sh
-ENV NEXT_PUBLIC_API_URL=__NEXT_PUBLIC_API_URL_PLACEHOLDER__
+# Build the application using Render's auto-injected build args
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN npm run build
 
@@ -29,11 +30,6 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]

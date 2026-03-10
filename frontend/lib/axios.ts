@@ -4,13 +4,20 @@ import axios from 'axios';
 const getBaseURL = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (process.env.NODE_ENV === 'development') return 'http://localhost:8080';
-  return ''; // This will result in relative requests in production if URL is missing
+  return '';
 };
 
 const baseURL = getBaseURL();
 
 if (typeof window !== 'undefined') {
-  console.debug(`[Axios] Mode: ${process.env.NODE_ENV} | BaseURL: ${baseURL || '(relative)'}`);
+  console.debug(`[Axios] Mode: ${process.env.NODE_ENV}`);
+  console.debug(`[Axios] BaseURL: ${baseURL || '(relative)'}`);
+  // Log all NEXT_PUBLIC vars to help debug Render build
+  const publicVars = Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_'));
+  console.debug('[Axios] Available NEXT_PUBLIC vars:', publicVars);
+  if (!process.env.NEXT_PUBLIC_API_URL) {
+    console.warn('[Axios] NEXT_PUBLIC_API_URL is missing in browser context!');
+  }
 }
 
 const api = axios.create({

@@ -42,7 +42,7 @@ services:
       - key: ADMIN_PASSWORD
         sync: false           # You will be prompted to set this in the Render dashboard
       - key: CORS_ORIGIN
-        value: https://reminder-frontend.onrender.com
+        value: https://reminder-frontend-1q4u.onrender.com
 
   # ── Frontend (Next.js) ────────────────────────────────────────────
   - type: web

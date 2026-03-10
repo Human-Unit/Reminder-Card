@@ -60,5 +60,4 @@ services:
       - key: NEXT_PUBLIC_API_URL
         value: https://reminder-backend-a40q.onrender.com
     dockerBuildArgs:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://reminder-backend-a40q.onrender.com
+      NEXT_PUBLIC_API_URL: https://reminder-backend-a40q.onrender.com

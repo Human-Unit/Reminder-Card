@@ -2,9 +2,13 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  // Use the literal string for Next.js build-time replacement
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && envUrl.trim() !== "") return envUrl;
+
   if (process.env.NODE_ENV === 'development') return 'http://localhost:8080';
-  return '';
+
+  return ''; // Fallback to relative path in production if everything fails
 };
 
 const baseURL = getBaseURL();

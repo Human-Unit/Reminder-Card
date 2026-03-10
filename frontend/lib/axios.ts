@@ -1,9 +1,21 @@
 // lib/axios.ts
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+  if (process.env.NODE_ENV === 'development') return 'http://localhost:8080';
+  return ''; // This will result in relative requests in production if URL is missing
+};
+
+const baseURL = getBaseURL();
+
+if (typeof window !== 'undefined') {
+  console.debug(`[Axios] Mode: ${process.env.NODE_ENV} | BaseURL: ${baseURL || '(relative)'}`);
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true, // Передаём куки для сессионной авторизации
+  baseURL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

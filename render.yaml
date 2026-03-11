@@ -42,8 +42,16 @@ services:
       - key: ADMIN_PASSWORD
         sync: false           # You will be prompted to set this in the Render dashboard
       - key: CORS_ORIGIN
-        value: https://reminder-backend-a40q.onrender.com
-...
+        value: https://reminder-card.onrender.com # Update this to your frontend URL after deployment
+
+  # ── Frontend (Next.js) ─────────────────────────────────────────────
+  - type: web
+    name: reminder-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    region: oregon
+    plan: free
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://reminder-backend-a40q.onrender.com

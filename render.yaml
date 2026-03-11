@@ -14,35 +14,45 @@ services:
     region: oregon
     plan: free
     healthCheckPath: /health
+
     envVars:
       - key: DB_HOST
         fromDatabase:
           name: reminder-db
           property: host
+
       - key: DB_USER
         fromDatabase:
           name: reminder-db
           property: user
+
       - key: DB_PASSWORD
         fromDatabase:
           name: reminder-db
           property: password
+
       - key: DB_NAME
         fromDatabase:
           name: reminder-db
           property: database
+
       - key: DB_PORT
         fromDatabase:
           name: reminder-db
           property: port
+
       - key: DB_SSLMODE
         value: require
+
       - key: JWT_SECRET
-        generateValue: true   # Render auto-generates a secure random value
+        generateValue: true
+
       - key: ADMIN_PASSWORD
-        sync: false           # You will be prompted to set this in the Render dashboard
+        sync: false
+
       - key: CORS_ORIGIN
-        value: https://reminder-card.onrender.com # Update this to your frontend URL after deployment
+        value: https://reminder-frontend-1q4u.onrender.com
+
 
   # ── Frontend (Next.js) ─────────────────────────────────────────────
   - type: web
@@ -52,8 +62,7 @@ services:
     dockerContext: ./frontend
     region: oregon
     plan: free
+
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://reminder-backend-a40q.onrender.com
-    dockerBuildArgs:
-      NEXT_PUBLIC_API_URL: https://reminder-backend-a40q.onrender.com

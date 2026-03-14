@@ -3,23 +3,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { motion } from "framer-motion";
-import { AlertCircle, User, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { User, Lock, ArrowRight, Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", password: "" });
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.password) {
-      setError("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const res = await api.post("/user/login", form);
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
     } catch (err) {
       const errorMsg = (err as Error)?.message || "Login failed";
-      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -76,11 +76,19 @@ export default function LoginPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-3xl"></div>
       </div>
 
+      <Link 
+        href="/" 
+        className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-full backdrop-blur-md"
+      >
+        <ArrowLeft size={16} />
+        <span className="text-sm font-medium">Home</span>
+      </Link>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700"
+        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700 mt-12"
       >
         <div className="text-center mb-10">
           <motion.div
@@ -96,17 +104,6 @@ export default function LoginPage() {
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2">Sign in to continue your journey</p>
         </div>
-
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600"
-          >
-            <AlertCircle size={18} className="shrink-0" />
-            <p className="text-sm font-medium">{error}</p>
-          </motion.div>
-        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="relative">

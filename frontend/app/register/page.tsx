@@ -3,37 +3,37 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import api from '@/lib/axios';
-import { AlertCircle, User, Mail, Lock, UserPlus, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
+import { toast } from "sonner";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.name || !form.email || !form.password) {
-      setError('Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (form.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       await api.post('/user/create', form);
-      // После регистрации отправляем на логин
+      toast.success('Account created successfully!');
       router.push('/login');
     } catch (err) {
       const errorMsg = (err as Error)?.message || 'Registration failed';
-      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -46,11 +46,19 @@ export default function RegisterPage() {
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-200/40 dark:bg-purple-900/20 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/40 dark:bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
 
+      <Link 
+        href="/" 
+        className="absolute top-6 left-6 z-10 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-full backdrop-blur-md"
+      >
+        <ArrowLeft size={16} />
+        <span className="text-sm font-medium">Home</span>
+      </Link>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700"
+        className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.2)] w-full max-w-md border border-white dark:border-slate-700 mt-12"
       >
         <div className="text-center mb-10">
           <motion.div 
@@ -65,17 +73,6 @@ export default function RegisterPage() {
           <p className="text-gray-500 dark:text-gray-400 mt-2">Start your mindful journey today</p>
         </div>
         
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-2xl flex items-center gap-3 text-red-600 dark:text-red-400"
-          >
-            <AlertCircle size={18} className="shrink-0" />
-            <p className="text-sm font-medium">{error}</p>
-          </motion.div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Поле имени */}
           <div className="relative">

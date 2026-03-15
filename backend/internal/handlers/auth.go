@@ -23,9 +23,40 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Check if email already taken
+	// Check if email already taken (including soft-deleted users)
 	var existing models.User
-	if err := DB.Where("email = ?", input.Email).First(&existing).Error; err == nil {
+	err := DB.Unscoped().Where("email = ?", input.Email).First(&existing).Error
+	
+	if err == nil {
+		// A record was found. Check if it's currently active (not soft-deleted)
+		if existing.DeletedAt.Valid {
+			// Record is soft-deleted. We can resurrect it!
+			hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+			if hashErr != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+				return
+			}
+			
+			// Update the record with new details and clear the DeletedAt flag
+			existing.Name = input.Name
+			existing.Password = string(hashedPassword)
+			existing.Role = "user"
+			
+			// Use Unscoped to update the soft-deleted record and clear DeletedAt
+			if updateErr := DB.Unscoped().Model(&existing).Updates(map[string]interface{}{
+				"name":       existing.Name,
+				"password":   existing.Password,
+				"role":       existing.Role,
+				"deleted_at": nil,
+			}).Error; updateErr != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to restore user"})
+				return
+			}
+			c.JSON(http.StatusCreated, gin.H{"message": "User recreated successfully", "id": existing.ID})
+			return
+		}
+
+		// Otherwise, it represents an active user. Block the registration.
 		c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
 		return
 	}

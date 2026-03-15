@@ -84,7 +84,10 @@ jobs:
     - name: 🏷️ Lowercase Registry Owner
       id: prep
       if: github.event_name == 'push'
-      run: echo "owner_lc=${GITHUB_REPOSITORY_OWNER@L}" >> $GITHUB_OUTPUT
+      env:
+        OWNER: ${{ github.repository_owner }}
+      run: |
+        echo "owner_lc=${OWNER,,}" >> $GITHUB_OUTPUT
 
     - name: 🔑 Login to GHCR
       if: github.event_name == 'push'

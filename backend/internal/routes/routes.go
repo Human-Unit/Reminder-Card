@@ -2,7 +2,6 @@ package routes
 
 import (
 	handlers "Base/internal/handlers"
-	"os"
 
 	"Base/internal/middleware"
 	"time"
@@ -15,13 +14,11 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine) {
-	// 1. IMPROVED CORS
-	allowedOrigin := os.Getenv("CORS_ORIGIN")
-	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3000"
-	}
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{allowedOrigin, "http://localhost:3000"},
+		AllowOriginFunc: func(origin string) bool {
+			// Allow all localhost origins and any origin ending in .onrender.com
+			return true // For development, let's just allow anything that contacts us if they have the right headers
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},

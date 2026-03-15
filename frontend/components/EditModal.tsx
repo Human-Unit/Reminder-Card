@@ -32,11 +32,11 @@ export const EditModal = ({ isOpen, type, item, onClose, onSave }: EditModalProp
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-transparent dark:border-slate-700"
       >
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-bold text-lg text-slate-800">Edit {type === "users" ? "User" : "Entry"}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+          <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Edit {type === "users" ? "User" : "Entry"}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
             <X size={20} />
           </button>
         </div>
@@ -45,38 +45,38 @@ export const EditModal = ({ isOpen, type, item, onClose, onSave }: EditModalProp
           {type === "users" ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Name</label>
                 <input
                   value={(formData as User).name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
                 <input
                   value={(formData as User).email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"
                 />
               </div>
             </>
           ) : (
             <>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Situation</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Situation</label>
                 <input
                   value={(formData as Entry).situation}
                   onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Text</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Text</label>
                 <textarea
                   value={(formData as Entry).text}
                   onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-                  className="w-full p-3 bg-slate-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
+                  className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-slate-800 dark:text-slate-100"
                 />
               </div>
             </>
@@ -86,7 +86,7 @@ export const EditModal = ({ isOpen, type, item, onClose, onSave }: EditModalProp
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
             >
               Cancel
             </button>

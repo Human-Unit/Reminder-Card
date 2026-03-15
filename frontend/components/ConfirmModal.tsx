@@ -24,25 +24,25 @@ export const ConfirmModal = ({ isOpen, title, message, onConfirm, onCancel, isLo
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="bg-white rounded-[2.5rem] p-8 w-full max-w-md relative z-10 shadow-2xl border border-slate-100"
+          className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 w-full max-w-md relative z-10 shadow-2xl border border-slate-100 dark:border-slate-700"
         >
-          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 mb-6">
+          <div className="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-2xl flex items-center justify-center text-red-500 mb-6">
             <AlertTriangle size={32} />
           </div>
-          <h3 className="text-2xl font-black text-slate-800 mb-2 tracking-tight">{title}</h3>
-          <p className="text-slate-500 font-medium mb-8 leading-relaxed">{message}</p>
+          <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2 tracking-tight">{title}</h3>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">{message}</p>
           
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 py-4 px-6 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
+              className="flex-1 py-4 px-6 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className="flex-1 py-4 px-6 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100 disabled:opacity-50"
+              className="flex-1 py-4 px-6 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-100 dark:shadow-none disabled:opacity-50"
             >
               {isLoading ? 'Processing...' : 'Delete Anyway'}
             </button>

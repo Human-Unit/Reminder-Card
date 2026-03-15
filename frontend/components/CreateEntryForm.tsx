@@ -87,8 +87,8 @@ export default function CreateEntryForm({ onEntryCreated }: Props) {
                     onClick={() => setForm({ ...form, icon: iconKey })}
                     className={`p-3 rounded-xl border transition-all flex items-center justify-center ${
                       isSelected
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 shadow-md transform scale-105'
-                        : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-400 hover:border-purple-200'
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 shadow-md transform scale-105'
+                        : 'border-transparent bg-gray-50 dark:bg-slate-900 text-gray-500 hover:border-purple-200 dark:hover:border-slate-600'
                     }`}
                   >
                     <IconComp size={20} />

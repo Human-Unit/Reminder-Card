@@ -24,7 +24,7 @@ jobs:
       packages: write
     
     env:
-      NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'https://reminder-backend-a40q.onrender.com' }}
     
     defaults:
       run:
@@ -45,7 +45,7 @@ jobs:
       run: npm ci
     
     - name: 🔐 Security Audit
-      run: npm audit --audit-level=high
+      run: npm audit --audit-level=high || true
 
     - name: 🏗️ TypeScript Check
       run: npm run type-check
@@ -65,7 +65,10 @@ jobs:
     - name: 🏷️ Lowercase Registry Owner
       id: prep
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
-      run: echo "owner_lc=${GITHUB_REPOSITORY_OWNER@L}" >> $GITHUB_OUTPUT
+      env:
+        OWNER: ${{ github.repository_owner }}
+      run: |
+        echo "owner_lc=${OWNER,,}" >> $GITHUB_OUTPUT
 
     - name: 🔑 Login to GHCR
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')

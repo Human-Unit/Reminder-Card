@@ -8,7 +8,7 @@ const getBaseURL = () => {
 
   if (process.env.NODE_ENV === 'development') return 'http://localhost:8080';
 
-  return ''; // Fallback to relative path in production if everything fails
+  return 'https://reminder-backend-a40q.onrender.com'; // Fallback to production API if env var is missing
 };
 
 const baseURL = getBaseURL();
@@ -19,8 +19,11 @@ if (typeof window !== 'undefined') {
   // Log all NEXT_PUBLIC vars to help debug Render build
   const publicVars = Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_'));
   console.debug('[Axios] Available NEXT_PUBLIC vars:', publicVars);
+  console.debug('[Axios] NEXT_PUBLIC_API_URL value:', process.env.NEXT_PUBLIC_API_URL);
+  
   if (!process.env.NEXT_PUBLIC_API_URL) {
     console.warn('[Axios] NEXT_PUBLIC_API_URL is missing in browser context!');
+    console.warn('[Axios] Requests will be sent to:', window.location.origin + baseURL);
   }
 }
 

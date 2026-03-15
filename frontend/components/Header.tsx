@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import api from '../lib/axios';
 import { LogOut } from 'lucide-react'; 
 
@@ -59,10 +60,13 @@ export default function Header() {
           {isLoading ? (
             <div className="w-full h-full bg-gray-300 dark:bg-slate-700 animate-pulse"></div>
           ) : (
-            <img 
+            <Image 
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`} 
               alt="avatar"
-              className="w-full h-full" 
+              width={48}
+              height={48}
+              className="w-full h-full object-cover" 
+              unoptimized
             />
           )}
         </div>
